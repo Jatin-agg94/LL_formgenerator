@@ -18,3 +18,4 @@ monthdict= {'JAN':1,'FEB':2,'MAR':3,'APR':4,'MAY':5,'JUN':6,'JUL':7,'AUG':8,'SEP
 
 log_filename = datetime.datetime.now().strftime(os.path.join(logfolder,'logfile_%d_%m_%Y_%H_%M_%S.log'))
 logging.basicConfig(filename=log_filename, level=logging.INFO)
+count=0

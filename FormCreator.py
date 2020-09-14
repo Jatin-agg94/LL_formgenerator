@@ -19,10 +19,12 @@ master = Tk()
 master.title("Form Creator")
 master.minsize(640,400)
 
-from states import Goa,Karnataka,Chandigarh
+from states import Goa,Karnataka,Chandigarh,Delhi,Maharashtra
 Goa=Goa.Goa
 Karnataka=Karnataka.Karnataka
 Chandigarh=Chandigarh.Chandigarh
+Delhi=Delhi.Delhi
+Maharashtra=Maharashtra.Maharashtra
 #backend code starts here
 
 #from states.global_variables import *
@@ -91,11 +93,6 @@ def create_pdf(folderlocation,file_name):
         wb.Close()
         excel.Quit()
 
-def Maharashtra(    ):
-    logging.info('Maharashtra forms')
-
-def Delhi(data,contractor_name,contractor_address,filelocation,month,year):
-    logging.info('Delhi forms')
 
 def Tamilnadu(data,contractor_name,contractor_address,filelocation,month,year):
     logging.info('Tamilnadu forms')
@@ -107,14 +104,10 @@ def Uttar_Pradesh(data,contractor_name,contractor_address,filelocation,month,yea
     logging.info('Uttar Pradesh forms')
 
 
-
-
-
-
-
 Stateslist = ['Chandigarh','Karnataka','Maharashtra','Delhi','Telangana','Uttar Pradesh','Tamilnadu','Goa']
 
-State_Process = {'Goa':Goa,'Chandigarh':Chandigarh,'Karnataka':Karnataka,'Maharashtra':Maharashtra,'Delhi':Delhi,'Telangana':Telangana,'Uttar Pradesh':Uttar_Pradesh,'Tamilnadu':Tamilnadu}
+State_Process = {'Goa':Goa,'Chandigarh':Chandigarh,'Karnataka':Karnataka,'Maharashtra':Maharashtra,
+                        'Delhi':Delhi,'Telangana':Telangana,'Uttar Pradesh':Uttar_Pradesh,'Tamilnadu':Tamilnadu}
 
 companylist = ['SVR LTD','PRY Wine Ltd','CDE Technology Ltd']
 
@@ -438,10 +431,13 @@ def cdeDataProcess(inputfolder,month,year):
         #for all state employees(PE+contractor)
 
         statedata = CDE_Data[CDE_Data['State_or_Central']=='State'].copy()
-        statedata.State='Goa'
+        statedata.State='Maharashtra'
         CDE_States = list(statedata['State'].unique())
+        print("--------------------")
+        print(CDE_States)
         for state in CDE_States:
             unit_with_location = list((statedata[statedata.State==state]['Unit']+','+statedata[statedata.State==state]['Location']).unique())
+            print(unit_with_location)
             for UL in unit_with_location:
                 UL=re.sub(r"(\.*\s+)$","",UL)
                 inputdata = statedata[(statedata['State']==state) & (statedata['Unit']==UL.split(',')[0]) & (statedata['Location']==UL.split(',')[1])].copy()

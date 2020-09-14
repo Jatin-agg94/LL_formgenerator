@@ -1,4 +1,4 @@
-from states import logging,monthdict,Statefolder
+from states import logging,monthdict,Statefolder,count
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
@@ -13,9 +13,18 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, Border, Alignment, Side
 import calendar
 import logging
-
+from collections import Counter
 
 def Goa(data,contractor_name,contractor_address,filelocation,month,year):
+    # global count
+    # count=count+1
+    # name=os.getcwd()+"\\data\\"+str(count)
+    # os.mkdir(name)
+    # with open(name+"\\"+str(count)+".txt","w") as file: 
+    #     value=contractor_name+"|"+contractor_address+"|"+filelocation+"|"+month+"|"+str(year)+"\n"
+    #     file.write(value)
+    # data.to_csv(name+"\\"+str(count)+".csv")
+    
     Goafilespath = os.path.join(Statefolder,'Goa')
     logging.info('Goa files path is :'+str(Goafilespath))
     data.reset_index(drop=True, inplace=True)
@@ -64,12 +73,12 @@ def Goa(data,contractor_name,contractor_address,filelocation,month,year):
 
         data_formII = data.copy()
         columns=['S.no',"Employee Name","Father's Name","Gender","Department","attendancefile",
-                                        "damage_or_loss","whether_work_showed_cause",
+                                        "Damage or Loss","whether_work_showed_cause",
                                         "Date of payment ","num_instalments","Date of payment ","remarks"]
 
         data_formII['S.no'] = list(range(1,len(data_formII)+1))
         data_formII["attendancefile"]="confusing mapping"
-        data_formII[["damage_or_loss","whether_work_showed_cause","num_instalments","remarks"]]="-----"
+        data_formII[["whether_work_showed_cause","num_instalments","remarks"]]="-----"
         formII_data=data_formII[columns]
         formIIsheet = formIIfile['Sheet1']
         formIIsheet.sheet_properties.pageSetUpPr.fitToPage = True
@@ -103,10 +112,10 @@ def Goa(data,contractor_name,contractor_address,filelocation,month,year):
         columns=['S.no',"Employee Name","Father's Name","Gender","Designation_Dept","attendancefile",
                                         "extent_of_overtime","total_overtime",
                                         'Normal hrs ','FIXED MONTHLY GROSS',
-                                        "overtime_rate",'Overtime',"ot",'CHECK CTC Gross','Date of payment ']
+                                        "overtime rate",'Overtime',"ot",'CHECK CTC Gross','Date of payment ']
 
         data_formVIII['S.no'] = list(range(1,len(data_formVIII)+1))
-        data_formVIII[["overtime_rate","attendancefile","overtime_rate","ot"]]="Didn't find"
+        data_formVIII[["attendancefile","overtime_rate","ot"]]="Didn't find"
         data_formVIII[["extent_of_overtime","total_overtime"]]="----"
         
         formVIII_data=data_formVIII[columns]
@@ -159,7 +168,7 @@ def Goa(data,contractor_name,contractor_address,filelocation,month,year):
         formVIIIfinalfile = os.path.join(filelocation,'Form VIII register of Over time.xlsx')
         formVIIIfile.save(filename=formVIIIfinalfile)
         
-    #Not complete since not all mapping is provided
+    
     def From_XII():
         formXIIfilepath = os.path.join(Goafilespath,'Form XII Register of leave.xlsx')
         formXIIfile = load_workbook(filename=formXIIfilepath)
@@ -168,11 +177,193 @@ def Goa(data,contractor_name,contractor_address,filelocation,month,year):
         logging.info('create columns which are now available')
 
         data_formXII = data.copy()
-        #print(sorted(list(data_formXII.columns)))
+        columns=["Employee Name","Date Joined","Father's Name","Registration_no"]
+        data_formXII_columns=list(data_formXII.columns)
+        start=data_formXII_columns.index('Arrears salary')
+        end=data_formXII_columns.index('Total\r\nDP')
+        columns.extend(data_formXII_columns[start+1:end])
 
+
+        formXII_data=data_formXII[columns]
+        formXIIsheet = formXIIfile['Sheet1']
+
+        formXIIsheet.sheet_properties.pageSetUpPr.fitToPage = True
+
+        #for column in  range(ord('A'), ord('G') + 1):
+        #    formXIIsheet.unmerge_cells(chr(column)+"11:"+chr(column)+"15")
+        formXIIsheet.unmerge_cells("A18:A19")
+        formXIIsheet.unmerge_cells("B17:C17")
+        formXIIsheet.unmerge_cells("D17:E17")
+        formXIIsheet.unmerge_cells("B18:C18")
+        formXIIsheet.unmerge_cells("D18:E18")
+        formXIIsheet.unmerge_cells("F18:F19")
+        formXIIsheet.unmerge_cells("G17:H17")
+        formXIIsheet.unmerge_cells("G18:H18")
+        formXIIsheet.unmerge_cells("I17:J17")
+        formXIIsheet.unmerge_cells("I18:J18")
+        
+        formXIIsheet.unmerge_cells("A24:A25")
+        formXIIsheet.unmerge_cells("B23:C23")
+        formXIIsheet.unmerge_cells("D23:E23")
+        formXIIsheet.unmerge_cells("B24:C24")
+        formXIIsheet.unmerge_cells("D24:E24")
+        formXIIsheet.unmerge_cells("F24:F25")
+        formXIIsheet.unmerge_cells("G23:H23")
+        formXIIsheet.unmerge_cells("G24:H24")
+        formXIIsheet.unmerge_cells("I23:J23")
+        formXIIsheet.unmerge_cells("I24:J24")
+
+        formXIIsheet.unmerge_cells("A30:A31")
+        formXIIsheet.unmerge_cells("B29:C29")
+        formXIIsheet.unmerge_cells("B30:C30")
+        formXIIsheet.unmerge_cells("D29:E29")
+        formXIIsheet.unmerge_cells("D30:E30")
+        formXIIsheet.unmerge_cells("F29:G29")
+        formXIIsheet.unmerge_cells("F30:G30")
+
+        formXIIsheet.unmerge_cells("E16:F16")
+        formXIIsheet.unmerge_cells("E22:F22")
+        formXIIsheet.unmerge_cells("C28:D28")
         
 
+        logging.info('data for form I is ready')
 
+        from openpyxl.utils.dataframe import dataframe_to_rows
+        #rows_copy = list(dataframe_to_rows(formXII_data, index=False, header=False))
+        def cell_write(sheet,r_idx,c_idx,value):
+                sheet.cell(row=r_idx, column=c_idx, value=value)
+                sheet.cell(row=r_idx, column=c_idx).font =Font(name ='Bell MT', size =10)
+                sheet.cell(row=r_idx, column=c_idx).alignment = Alignment(horizontal='center', vertical='center', wrap_text = True)
+                border_sides = Side(style='thin')
+                sheet.cell(row=r_idx, column=c_idx).border = Border(outline= True, right=border_sides, bottom=border_sides)
+            
+        def ELW_write(row_index,target,start,end,is_abs_num):
+            cell_write(target,row_index,2,start)
+            cell_write(target,row_index,3,end)
+            cell_write(target,row_index,4,is_abs_num)
+            #cell_write(target,row_index,5,start)
+            #cell_write(target,row_index,6,end)
+
+        def SL_write(row_index,target,start,end,is_abs_num):
+            cell_write(target,row_index,2,start)
+            cell_write(target,row_index,3,end)
+            cell_write(target,row_index,4,is_abs_num)
+            #cell_write(target,row_index,5,start)
+            #cell_write(target,row_index,6,end)
+
+        def CL_write(row_index,target,start,end,is_abs_num):
+            cell_write(target,row_index,2,start)
+            cell_write(target,row_index,3,end)
+            cell_write(target,row_index,4,is_abs_num)
+            #cell_write(target,row_index,5,start)
+            #cell_write(target,row_index,6,end)
+        
+        def ML_write(row_index,target,start,end,is_abs_num):
+            cell_write(target,row_index,2,start)
+            cell_write(target,row_index,3,end)
+            #cell_write(target,row_index,5,start)
+            #cell_write(target,row_index,6,end)
+
+        form_write={'PL':ELW_write,'SL':SL_write,'CL':CL_write,'ML':ML_write}
+        
+        def start_end_date_attendance(rows,absent_label,row_offset):  
+           # print("infunction",row_offset)
+            is_abs_num=0
+            row_index=0
+            added={}
+            for sheet_idx, row in enumerate(rows, 10):
+                row_index=0
+                for c_idx, value in enumerate(row, 1):
+                    if c_idx==1:
+                        try:
+                            target=formXIIfile[value]
+                        except:
+                            target = formXIIfile.copy_worksheet(formXIIsheet)
+                            target.title=value
+                            #initial offset
+                            row_offset[value]=14
+                        target['A4']="Name and address of the Establishment:- "" "+str(data_formXII['Unit'].unique()[0])+", "+str(data_formXII['Address'].unique()[0])
+                        target['A5']="Name of Employer:- "" "+str(data_formXII['Unit'].unique()[0])
+                        target['A7']="Name of Employee : "+str(value)
+                        added[target.title]=0
+                    elif c_idx==2:
+                        target['A5']="Date of Employment : "+str(value)
+                    elif c_idx==3:
+                        target['A8']="Father's Name : "+str(value)
+                    elif c_idx==4:
+                        target['A6']="Registration No. :- "+str(value)
+
+                    elif is_abs_num==0 and value==absent_label:
+                        is_abs_num=1
+                        start=columns[c_idx-1]
+                        end=columns[c_idx-1]
+                    elif value==absent_label:
+                        is_abs_num+=1
+                        end=columns[c_idx-1]
+                    elif is_abs_num:
+                        #target.cell(row=row_index+13, column=1+column_offset, value=is_abs_num)
+                     #   print("write",row_index,row_offset,row_index+row_offset[target.title])
+                        form_write[absent_label](row_index+row_offset[target.title],target,start,end,is_abs_num)
+                        target.insert_rows(row_index+row_offset[target.title]+1)
+                        is_abs_num=0
+                        row_index+=1
+                        added[target.title]+=1
+
+            return added
+        offset={}
+        offset=Counter(start_end_date_attendance(dataframe_to_rows(formXII_data, index=False, header=False),"PL",offset))
+        
+        for sheet in formXIIfile.sheetnames:
+            offset[sheet]+=20
+            formXIIfile[sheet].merge_cells("A"+str(offset[sheet]-2)+":A"+str(offset[sheet]-1))
+            formXIIfile[sheet].merge_cells("B"+str(offset[sheet]-3)+":C"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("D"+str(offset[sheet]-3)+":E"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("B"+str(offset[sheet]-2)+":C"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("D"+str(offset[sheet]-2)+":E"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("F"+str(offset[sheet]-2)+":F"+str(offset[sheet]-1))
+            formXIIfile[sheet].merge_cells("G"+str(offset[sheet]-3)+":H"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("G"+str(offset[sheet]-2)+":H"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("I"+str(offset[sheet]-3)+":J"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("I"+str(offset[sheet]-2)+":J"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("A"+str(offset[sheet]-4)+":J"+str(offset[sheet]-4))
+            cell_write(sheet=formXIIfile[sheet],r_idx=offset[sheet]-4,c_idx=1,value="Sick Leave")
+            
+        offset+=Counter(start_end_date_attendance(dataframe_to_rows(formXII_data, index=False, header=False),"SL",offset))
+        
+        for sheet in formXIIfile.sheetnames:
+            offset[sheet]+=6
+            formXIIfile[sheet].merge_cells("A"+str(offset[sheet]-2)+":A"+str(offset[sheet]-1))
+            formXIIfile[sheet].merge_cells("B"+str(offset[sheet]-3)+":C"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("D"+str(offset[sheet]-3)+":E"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("B"+str(offset[sheet]-2)+":C"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("D"+str(offset[sheet]-2)+":E"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("F"+str(offset[sheet]-2)+":F"+str(offset[sheet]-1))
+            formXIIfile[sheet].merge_cells("G"+str(offset[sheet]-3)+":H"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("G"+str(offset[sheet]-2)+":H"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("I"+str(offset[sheet]-3)+":J"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("I"+str(offset[sheet]-2)+":J"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("A"+str(offset[sheet]-4)+":J"+str(offset[sheet]-4))
+            cell_write(sheet=formXIIfile[sheet],r_idx=offset[sheet]-4,c_idx=1,value="Casual Leave")
+        
+        
+        offset+=Counter(start_end_date_attendance(dataframe_to_rows(formXII_data, index=False, header=False),"CL",offset))
+        
+        for sheet in formXIIfile.sheetnames:
+            offset[sheet]+=6
+            formXIIfile[sheet].merge_cells("A"+str(offset[sheet]-2)+":A"+str(offset[sheet]-1))
+            formXIIfile[sheet].merge_cells("B"+str(offset[sheet]-3)+":C"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("B"+str(offset[sheet]-2)+":C"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("D"+str(offset[sheet]-3)+":E"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("D"+str(offset[sheet]-2)+":E"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("F"+str(offset[sheet]-3)+":G"+str(offset[sheet]-3))
+            formXIIfile[sheet].merge_cells("F"+str(offset[sheet]-2)+":G"+str(offset[sheet]-2))
+            formXIIfile[sheet].merge_cells("A"+str(offset[sheet]-4)+":G"+str(offset[sheet]-4))
+            cell_write(sheet=formXIIfile[sheet],r_idx=offset[sheet]-4,c_idx=1,value="Maternity Leave")
+        offset+=Counter(start_end_date_attendance(dataframe_to_rows(formXII_data, index=False, header=False),"ML",offset))
+        formXIIfinalfile = os.path.join(filelocation,'Form XII Register of leave.xlsx')
+        formXIIfile.save(filename=formXIIfinalfile)
+        
+       
     def Form_XXI():
         formXXIfilepath = os.path.join(Goafilespath,'Form XXI Register of Employment.xlsx')
         formXXIfile = load_workbook(filename=formXXIfilepath)
