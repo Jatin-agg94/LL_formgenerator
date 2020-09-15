@@ -33,8 +33,10 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
                                         "FIXED MONTHLY GROSS","Date of payment ","Date of Fine","remarks"]
 
         data_formI['S.no'] = list(range(1,len(data_formI)+1))
-        data_formI[["name&date_of_offence","cause_against_fine"]]="-----"
-        data_formI[["remarks","Date of Fine"]]=""
+        data_formI["name&date_of_offence"]="-----"
+        data_formI["cause_against_fine"]="-----"
+        data_formI["remarks"]=""
+        data_formI["Date of Fine"]=""
         formI_data=data_formI[columns]
         formIsheet = formIfile['Sheet1']
         formIsheet.sheet_properties.pageSetUpPr.fitToPage = True
@@ -65,14 +67,13 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
 
         data_formII = data.copy()
         #print(sorted(data_formII.columns))
-        columns=['S.no',"Emp Code","Employee Name","working_hrs_from","working_hrs_to",
+        columns=['S.no',"Emp Code","Employee Name","start_time","end_time",
                                         "interval_for_reset_from","interval_for_reset_to"]
         
         data_formII_columns=list(data_formII.columns)
         start=data_formII_columns.index('Arrears salary')
         end=data_formII_columns.index('Total\r\nDP')
         columns.extend(data_formII_columns[start+1:end])
-        
         less=31-len(data_formII_columns[start+1:end])
         for i in range(less):
             columns.extend(["less"+str(i+1)])
@@ -80,7 +81,8 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
 
         columns.extend(["Total\r\nDP"])
         data_formII['S.no'] = list(range(1,len(data_formII)+1))
-        data_formII[['interval_for_reset_to', 'working_hrs_to', 'interval_for_reset_from', 'working_hrs_from']]=""
+        data_formII['interval_for_reset_to']=data_formII.rest_interval.str.split("-",expand=True)[1]
+        data_formII['interval_for_reset_from']=data_formII.rest_interval.str.split("-",expand=True)[0]
         formII_data=data_formII[columns]
         formIIsheet = formIIfile['Sheet1']
         formIIsheet.sheet_properties.pageSetUpPr.fitToPage = True
@@ -277,7 +279,7 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
         logging.info('create columns which are now available')
 
         data_formO = data.copy()
-        columns=["Employee Name","Date Joined","Father's Name","Registration_no"]
+        columns=["Employee Name","Date Joined","Department","Registration_no"]
         data_formO_columns=list(data_formO.columns)
         start_col=data_formO_columns.index('Arrears salary')
         end=data_formO_columns.index('Total\r\nDP')
@@ -306,6 +308,9 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
         formOsheet.unmerge_cells("A29:B30")
         formOsheet.unmerge_cells("C29:C31")
         formOsheet.unmerge_cells("D29:D31")
+        formOsheet.unmerge_cells("E29:E31")
+        formOsheet.unmerge_cells("F29:F31")
+        
         
         logging.info('data for form I is ready')
 
@@ -335,8 +340,9 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
             cell_write(target,row_index,1,start)
             cell_write(target,row_index,2,end)
             cell_write(target,row_index, 6, "-----")
-            formOsheet.merge_cells("F"+str(row_index)+":G"+str(27))
-
+            "---------------------------------------------------------------------uncomment later---------------------------------------------------------------"
+            formOfile[sheet].merge_cells("F"+str(row_index)+":G"+str(row_index))
+            print("F"+str(row_index)+":G"+str(row_index))
             #cell_write(target,row_index,4,is_abs_num)
             #cell_write(target,row_index,5,start)
             #cell_write(target,row_index,6,end)
@@ -349,7 +355,7 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
 
         form_write={'PL':PL_write,'FL':FL_write,'CL':CL_write}
         
-        def start_end_date_attendance(rows,absent_label,row_offset):  
+        def start_end_date_attendance(rows,absent_label,row_offset,initial_offset):  
            # print("infunction",row_offset)
             is_abs_num=0
             row_index=0
@@ -364,18 +370,19 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
                             target = formOfile.copy_worksheet(formOsheet)
                             target.title=value
                             #initial offset
-                            row_offset[value]=13
+                            row_offset[value]=initial_offset
                         
-                        target['A4']="Name and address of the Establishment:- "" "+str(data_formO['Unit'].unique()[0])+", "+str(data_formO['Address'].unique()[0])
+                        target['A4']="Name and address of the Establishment:- "" "+str(data_formO['Unit'].unique()[0])+","+str(data_formO['Address'].unique()[0])
                         target['A5']="Name of Employer:- "" "+str(data_formO['Unit'].unique()[0])
+                        target["H4"]="Name of the employer:- "+str(data_formO['Unit'].unique()[0])+"\n"+" Receipt of leave book - "
                         target['A7']="Name of Employee : "+str(value)
                         global emp_name
                         emp_name=str(value)
                         added[target.title]=0
                     elif c_idx==2:
-                        target['A5']="Date of Employment : "+str(value)
+                        target['H8']="Date of entry into service :- "+str(value)
                     elif c_idx==3:
-                        target['A8']="Father's Name : "+str(value)
+                        target['A8']="Description of the Department (If Applicable) :-  "+str(value)
                     elif c_idx==4:
                         target['A6']="Registration No. :- "+str(value)
                     elif is_abs_num==0 and value=="PL":#absent_label:
@@ -401,38 +408,43 @@ def Maharashtra(data,contractor_name,contractor_address,filelocation,month,year)
                     
             return added
         offset={}
-        offset=Counter(start_end_date_attendance(dataframe_to_rows(formO_data, index=False, header=False),"PL",offset))
+        initial_offset=13
+        #for sheet in formOfile.sheetnames:
+        #    offset[sheet]=initial_offset
+        offset=Counter(offset)+Counter(start_end_date_attendance(dataframe_to_rows(formO_data, index=False, header=False),"PL",offset,initial_offset))
         
         for sheet in formOfile.sheetnames:
-            offset[sheet]+=12
-            formOsheet.merge_cells("A"+str(offset[sheet]-3)+":H"+str(offset[sheet]-3))
-            formOsheet.merge_cells("A"+str(offset[sheet]-2)+":B"+str(offset[sheet]-2))
-            formOsheet.merge_cells("C"+str(offset[sheet]-2)+":C"+str(offset[sheet]-1))
-            formOsheet.merge_cells("D"+str(offset[sheet]-2)+":D"+str(offset[sheet]-1))
-            formOsheet.merge_cells("E"+str(offset[sheet]-2)+":E"+str(offset[sheet]-1))
-            formOsheet.merge_cells("F"+str(offset[sheet]-2)+":G"+str(offset[sheet]-1))
-            formOsheet.merge_cells("H"+str(offset[sheet]-2)+":H"+str(offset[sheet]-1))
+            offset[sheet]+=25
+            initial_offset+=25
+            formOfile[sheet].merge_cells("A"+str(offset[sheet]-3)+":H"+str(offset[sheet]-3))
+            formOfile[sheet].merge_cells("A"+str(offset[sheet]-2)+":B"+str(offset[sheet]-2))
+            formOfile[sheet].merge_cells("C"+str(offset[sheet]-2)+":C"+str(offset[sheet]-1))
+            formOfile[sheet].merge_cells("D"+str(offset[sheet]-2)+":D"+str(offset[sheet]-1))
+            formOfile[sheet].merge_cells("E"+str(offset[sheet]-2)+":E"+str(offset[sheet]-1))
+            formOfile[sheet].merge_cells("F"+str(offset[sheet]-2)+":G"+str(offset[sheet]-1))
+            formOfile[sheet].merge_cells("H"+str(offset[sheet]-2)+":H"+str(offset[sheet]-1))
             
-        offset+=Counter(start_end_date_attendance(dataframe_to_rows(formO_data, index=False, header=False),"FL",offset))
+        offset+=Counter(start_end_date_attendance(dataframe_to_rows(formO_data, index=False, header=False),"FL",offset,initial_offset))
         
         for sheet in formOfile.sheetnames:
-            offset[sheet]+=6
-            formOsheet.merge_cells("A"+str(offset[sheet]-4)+":F"+str(offset[sheet]-4))
-            formOsheet.merge_cells("A"+str(offset[sheet]-3)+":B"+str(offset[sheet]-2))
-            formOsheet.merge_cells("C"+str(offset[sheet]-3)+":C"+str(offset[sheet]-1))
-            formOsheet.merge_cells("D"+str(offset[sheet]-3)+":D"+str(offset[sheet]-1))
-                
+            offset[sheet]+=7
+            initial_offset+=7
+            formOfile[sheet].merge_cells("A"+str(offset[sheet]-4)+":F"+str(offset[sheet]-4))
+            formOfile[sheet].merge_cells("A"+str(offset[sheet]-3)+":B"+str(offset[sheet]-2))
+            formOfile[sheet].merge_cells("C"+str(offset[sheet]-3)+":C"+str(offset[sheet]-1))
+            formOfile[sheet].merge_cells("D"+str(offset[sheet]-3)+":D"+str(offset[sheet]-1))
+            formOfile[sheet].merge_cells("E"+str(offset[sheet]-3)+":E"+str(offset[sheet]-1))
+            formOfile[sheet].merge_cells("F"+str(offset[sheet]-3)+":F"+str(offset[sheet]-1))
+            
         
-        offset+=Counter(start_end_date_attendance(dataframe_to_rows(formO_data, index=False, header=False),"CL",offset))
+        offset+=Counter(start_end_date_attendance(dataframe_to_rows(formO_data, index=False, header=False),"CL",offset,initial_offset))
         
         formOfinalfile = os.path.join(filelocation,'Form O leave book.xlsx')
         formOfile.save(filename=formOfinalfile)
-
-
-    #Form_I()
-    #Form_II_Muster_Roll()
-    #Form_II_reg_damage_loss()
-    #Form_II_wages_reg()
-    #Form_VI_Overtime()
-    #Form_VI_reg_advance()
+    Form_I()
+    Form_II_Muster_Roll()
+    Form_II_reg_damage_loss()
+    Form_II_wages_reg()
+    Form_VI_Overtime()
+    Form_VI_reg_advance()
     From_O()
