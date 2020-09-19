@@ -29,191 +29,96 @@ def Delhi(data,contractor_name,contractor_address,filelocation,month,year):
         logging.info('create columns which are now available')
 
         data_formG = data.copy()
-        columns=['Take_Date',"Employee Name","Father's Name","Gender","Department","name&date_of_offence","cause_against_fine","FIXED MONTHLY GROSS",
-                                        "Date of payment ","Date of payment ","remarks"]
-        data_formG['S.no'] = list(range(1,len(data_formG)+1))
-        data_formG[["name&date_of_offence","cause_against_fine","remarks"]]="-----"
+
+        #Part 1 form
+
+        columns=["Employee Name","Designation","Date","start_time","end_time","interval_for_reset_from","interval_for_reset_to","Total_hrs_worked",
+                                            "overtime_hrs_worked","overtime_wages_earned","Leave Type","leave_due",
+                                            "leave_availed","Balance"]
+        
+        data_formG["Fine_damage_loss"]=data_formG["Fine"]+"\n"+data_formG["Damage or Loss"]
+        data_formG[["Date",'leave_availed', 'leave_due', 'Balance','Total_hrs_worked', 'overtime_hrs_worked', 'overtime_wages_earned']]=""
+        data_formG['interval_for_reset_to']=data_formG.rest_interval.str.split("-",expand=True)[1]
+        data_formG['interval_for_reset_from']=data_formG.rest_interval.str.split("-",expand=True)[0]
+
+        data_formG_columns=list(data_formG.columns)
+        start=data_formG_columns.index('Arrears salary')
+        end=data_formG_columns.index('Total\r\nDP')
+        print(data_formG_columns,start+1,end-1)
+        start_date=data_formG_columns[start+1]
+        end_date=data_formG_columns[end-1]
+
         formG_data=data_formG[columns]
         formGsheet = formGfile['Sheet1']
         formGsheet.sheet_properties.pageSetUpPr.fitToPage = True
         logging.info('data for form G is ready')
 
 
-        formGsheet.unmerge_cells("A24:D24")
-        formGsheet.unmerge_cells("E24:I24")
-        formGsheet.unmerge_cells("A25:A26")
-        formGsheet.unmerge_cells("B25:B26")
-        formGsheet.unmerge_cells("C25:C26")
-        formGsheet.unmerge_cells("D25:D26")
-        formGsheet.unmerge_cells("E25:E26")
-        formGsheet.unmerge_cells("F25:F26")
-        formGsheet.unmerge_cells("G25:H25")
-        formGsheet.unmerge_cells("I24:I25")
-        formGsheet.unmerge_cells("J24:J26")
-        formGsheet.unmerge_cells("K24:K26")
-        formGsheet.unmerge_cells("L24:L26")
-        
 
         from openpyxl.utils.dataframe import dataframe_to_rows
         rows = dataframe_to_rows(formG_data, index=False, header=False)
 
         logging.info('rows taken out from data')
-        
-        def Part_I():
-            data_formG = data.copy()
-            columns=['Date',"Employee Name","Designation"]
-
-            data_formG_columns=list(data_formG.columns)
-            start=data_formG_columns.index('Arrears salary')
-            end=data_formG_columns.index('Total\r\nDP')
-            columns.extend(data_formG_columns[start+1:end])
-            
-            less=31-len(data_formG_columns[start+1:end])
-            for i in range(less):
-                columns.extend(["less"+str(i+1)])
-                data_formG["less"+str(i+1)]=""
-            columns.extend(["remarks"])
-
-
-            data_formG['S.no'] = list(range(1,len(data_formG)+1))
-            data_formG[["remarks"]]=""
-            formG_data=data_formG[columns]
-            formGsheet = formGfile['Sheet1']
-            formGsheet.sheet_properties.pageSetUpPr.fitToPage = True
-            logging.info('data for form G is ready')
-
-            from openpyxl.utils.dataframe import dataframe_to_rows
-            rows = dataframe_to_rows(formG_data, index=False, header=False)
-            rows_copy = list(dataframe_to_rows(formG_data, index=False, header=False))
-
-            def cell_write(sheet,r_idx,c_idx,value):
-                sheet.cell(row=r_idx, column=c_idx, value=value)
-                sheet.cell(row=r_idx, column=c_idx).font =Font(name ='Bell MT', size =10)
-                sheet.cell(row=r_idx, column=c_idx).alignment = Alignment(horizontal='center', vertical='center', wrap_text = True)
-                border_sides = Side(style='thin')
-                sheet.cell(row=r_idx, column=c_idx).border = Border(outline= True, right=border_sides, bottom=border_sides)
-            
-            def start_end_date_attendance(absent_label,offset):  
-                is_abs_num=0
-                row_index=0
-                for sheet_idx, row in enumerate(rows, 10):
-                    row_index=0
-                    for c_idx, value in enumerate(row, 1):
-                        if c_idx==1:
-                            try:
-                                target=formIfile[value]
-                            except :
-                                target = formIfile.copy_worksheet(formIsheet)
-                                target.title=value
-                            target['A6']="Name of Employee : "+value
-                            target['A4']="Name of Establishment : "+data_formI['Unit'][0]
-                        elif c_idx==2:
-                            target['A5']="Date of Employment : "+value
-                        elif is_abs_num==0 and value==absent_label:
-                            is_abs_num=1
-                            start=columns[c_idx-1]
-                            end=columns[c_idx-1]
-                        elif value==absent_label:
-                            is_abs_num+=1
-                            end=columns[c_idx-1]
-                        elif is_abs_num:
-                            #target.cell(row=row_index+13, column=1+column_offset, value=is_abs_num)
-                            cell_write(target,row_index+11,3+offset,start)
-                            cell_write(target,row_index+11,4+offset,end)
-                            cell_write(target,row_index+11,5+offset,is_abs_num)
-                            is_abs_num=0
-                            row_index+=1
-                    
-            absent_label="PL"
-            column_offset=5           
-            start_end_date_attendance(absent_label,column_offset)
-                
-
-            logging.info('rows taken out from data')
-            formGsheet.unmerge_cells("A15:N15")
-            formGsheet.unmerge_cells("A18:A19")
-            formGsheet.unmerge_cells("B18:B19")
-            formGsheet.unmerge_cells("C18:G18")
-            formGsheet.unmerge_cells("H18:K18")
-            formGsheet.unmerge_cells("L18:L19")
-            formGsheet.unmerge_cells("M18:M19")
-            formGsheet.unmerge_cells("N18:N19")
-            formGsheet.insert_rows(10,len(rows_copy))
-            formGsheet.delete_rows(18,2)
-            formGsheet.merge_cells("C"+str(len(rows_copy)+18)+":G"+str(len(rows_copy)+18))
-            formGsheet.merge_cells("H"+str(len(rows_copy)+18)+":K"+str(len(rows_copy)+18))
-            formGsheet.merge_cells("A"+str(len(rows_copy)+18)+":A"+str(len(rows_copy)+19))
-            formGsheet.merge_cells("B"+str(len(rows_copy)+18)+":B"+str(len(rows_copy)+19))
-
-
-            for r_idx, row in enumerate(rows, 10):
-                for c_idx, value in enumerate(row, 1):
-                    formGsheet.cell(row=r_idx, column=c_idx, value=value)
-                    formGsheet.cell(row=r_idx, column=c_idx).font =Font(name ='Bell MT', size =10)
-                    formGsheet.cell(row=r_idx, column=c_idx).alignment = Alignment(horizontal='center', vertical='center', wrap_text = True)
+        added=0
+        for r_idx, row in enumerate(rows, 15):
+            for c_idx, value in enumerate(row, 1):
+                if c_idx==1:
+                    try:
+                        target=formGfile[value]
+                    except:
+                        target = formGfile.copy_worksheet(formGsheet)
+                        target.title=value
+                        target["A8"]="Name of Employee "+value
+                        target['A7']="Name of Establishment : "+data_formG['Unit'][0]
+                        target['A4']="Year "+str(year)+"Month "+month
+                        target['A5']="Wage Period:- "+start_date+"-"+end_date
+                elif c_idx==2:
+                    target["A9"]="Nature of Work:- "+str(value)
+                else:
+                    target.cell(row=15+added, column=c_idx, value=value)
+                    target.cell(row=15+added, column=c_idx).font =Font(name ='Verdana', size =8)
+                    target.cell(row=15+added, column=c_idx).alignment = Alignment(horizontal='center', vertical='center', wrap_text = True)
                     border_sides = Side(style='thin')
-                    formGsheet.cell(row=r_idx, column=c_idx).border = Border(outline= True, right=border_sides, bottom=border_sides)
+                    target.cell(row=15+added, column=c_idx).border = Border(outline= True, right=border_sides, bottom=border_sides)
+                    #added+=1
 
-        def Part_II():
-            data_formG = data.copy()
-            columns=["Employee Name","Designation",'Earned Basic','Dearness_Allowance','Other Allowance',
-                                'Consolidated Salary','Overtime','Salary Advance','Fine','Other Deduction','Total Deductions',
-                                'Amount_Due','sign','Date of payment ']
 
-            
-            data_formG[['Consolidated Salary']]="---"
-            data_formG[["remarks",'Amount_Due','sign','Dearness_Allowance']]=""
-            formG_data=data_formG[columns]
-            formGsheet = formGfile['Sheet1']
-            formGsheet.sheet_properties.pageSetUpPr.fitToPage = True
-            logging.info('data for form G is ready')
+        #Part 2 form
+        columns=["Employee Name","Earned Basic","Overtime","Other Allowance","Total Earning",
+                                            "Fine_damage_loss","Other Deduction","date","amount","Total Earning","Net Paid","Date of payment "
+                                            ]
+        data_formG[["date","amount"]]=""
+        formG_data=data_formG[columns]
+        formGsheet = formGfile['Sheet1']
+        formGfile.remove(formGfile["Sheet1"])
+        formGsheet.sheet_properties.pageSetUpPr.fitToPage = True
+        logging.info('data for form G is ready')
 
-            from openpyxl.utils.dataframe import dataframe_to_rows
-            rows = dataframe_to_rows(formG_data, index=False, header=False)
-            rows_copy = list(dataframe_to_rows(formG_data, index=False, header=False))
-            
 
-            logging.info('rows taken out from data')
-            formGsheet.insert_rows(len(rows_copy)+20,len(rows_copy))
-        
-            formGsheet.merge_cells('A'+str(len(rows_copy)+16)+':A'+str(len(rows_copy)+17))
-            formGsheet.merge_cells('B'+str(len(rows_copy)+16)+':B'+str(len(rows_copy)+17))
-            formGsheet.merge_cells('C'+str(len(rows_copy)+16)+':G'+str(len(rows_copy)+16))
-            formGsheet.merge_cells('H'+str(len(rows_copy)+16)+':K'+str(len(rows_copy)+16))
-            
-            for r_idx, row in enumerate(rows, len(rows_copy)+20):
-                for c_idx, value in enumerate(row, 1):
-                    formGsheet.cell(row=r_idx, column=c_idx, value=value)
-                    formGsheet.cell(row=r_idx, column=c_idx).font =Font(name ='Bell MT', size =10)
-                    formGsheet.cell(row=r_idx, column=c_idx).alignment = Alignment(horizontal='center', vertical='center', wrap_text = True)
+
+        from openpyxl.utils.dataframe import dataframe_to_rows
+        rows = dataframe_to_rows(formG_data, index=False, header=False)
+
+        added=0
+        for r_idx, row in enumerate(rows, 28):
+            for c_idx, value in enumerate(row, 1):
+                if c_idx==1:
+                    try:
+                        target=formGfile[value]
+                    except:
+                        target = formGfile.copy_worksheet(formGsheet)
+                        print(value)
+                        target.title=value
+                        target["A8"]=target["A8"].value+" "+value
+                        target['A7']=target['A7'].value+" : "+data_formG['Unit'][0]
+                else:
+                    target.cell(row=28+added, column=c_idx, value=value)
+                    target.cell(row=28+added, column=c_idx).font =Font(name ='Verdana', size =8)
+                    target.cell(row=28+added, column=c_idx).alignment = Alignment(horizontal='center', vertical='center', wrap_text = True)
                     border_sides = Side(style='thin')
-                    formGsheet.cell(row=r_idx, column=c_idx).border = Border(outline= True, right=border_sides, bottom=border_sides)
+                    target.cell(row=28+added, column=c_idx).border = Border(outline= True, right=border_sides, bottom=border_sides)
+                    #added+=1
 
-            
-            data_formG_columns=list(data_formG.columns)
-            
-            start=data_formG_columns.index('Arrears salary')
-            end=data_formG_columns.index('Total\r\nDP')
-
-            formGsheet.merge_cells('A'+str(len(rows_copy)+13)+':N'+str(len(rows_copy)+13))
-            formGsheet['A5']="Name of Establishment   "+str(data_formG['Unit'].unique()[0])
-            formGsheet['H5']=formGsheet['H5'].value+"   "+str(data_formG_columns[start+1]+" "+month)
-            
-            formGsheet['A6']="Registration No   "+str(data_formG['Registration_no'].unique()[0])
-            formGsheet['G6']=str(data_formG_columns[end-1]+" "+month)
-            
-            formGsheet['Q7']=str(data_formG_columns[start+1]+" "+month)
-            formGsheet['U7']=str(data_formG_columns[end-1]+" "+month)
-            
-
-            formGsheet['A'+str(len(rows_copy)+14)]="Name of Establishment   "+str(data_formG['Unit'].unique()[0])
-            formGsheet['A'+str(len(rows_copy)+15)]="Registration No   "+str(data_formG['Registration_no'].unique()[0])
-            formGsheet['G'+str(len(rows_copy)+15)]=month
-        Part_I()
-        Part_II()
-
-
-        formGsheet['A4']=formGsheet['A4'].value+" : "+data_formG['Unit'][0]
         formGfinalfile = os.path.join(filelocation,'Form G.xlsx')
         formGfile.save(filename=formGfinalfile)
 
@@ -530,9 +435,10 @@ def Delhi(data,contractor_name,contractor_address,filelocation,month,year):
         formIVfinalfile = os.path.join(filelocation,'Form IV.xlsx')
         formIVfile.save(filename=formIVfinalfile)
         
-    #Form_H()
-    #Form_I_reg()
-    #Form_I()
-    #Form_II()
+    Form_H()
+    Form_I_reg()
+    Form_I()
+    Form_II()
     Form_IV()
+    Form_G()
 

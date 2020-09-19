@@ -282,7 +282,7 @@ def Goa(data,contractor_name,contractor_address,filelocation,month,year):
                             target.title=value
                             #initial offset
                             row_offset[value]=initial_offset
-                        target['A4']="Name and address of the Establishment:- "" "+str(data_formXII['Unit'].unique()[0])+", "+str(data_formXII['Address'].unique()[0])
+                        target['A4']="Name and address of the Establishment:- "+" "+str(data_formXII['Unit'].unique()[0])+", "+str(data_formXII['Address'].unique()[0])
                         target['A5']="Name of Employer:- "" "+str(data_formXII['Unit'].unique()[0])
                         target['A7']="Name of Employee : "+str(value)
                         added[target.title]=0
